@@ -29,7 +29,7 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 .res.ok{background:#e3f6e8;color:#1b7a34}.res.ng{background:#ffe5e3;color:#c4261d}
 </style></head><body>
 <h1>📚 教材リスト <span id="cnt" style="font-size:12px;color:#888"></span></h1>
-<div class="tabs"><button class="tab" id="t-view" onclick="setTab('view')">一覧（書店用）</button><button class="tab" id="t-edit" onclick="setTab('edit')">編集</button></div>
+<div class="tabs"><button class="tab" id="t-view" onclick="setTab('view')">一覧</button><button class="tab" id="t-edit" onclick="setTab('edit')">編集</button></div>
 
 <div id="v-view">
   <input id="q" type="search" placeholder="教材名や番号で検索（例：点図形、35）" oninput="renderView()" style="margin:0 0 10px">
@@ -39,6 +39,7 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 
 <div id="v-edit" style="display:none">
   <div class="chips" id="chips"></div>
+  <div class="tag" style="margin:-4px 0 10px">PDF＝Googleドライブに保存済み</div>
   <div id="list"></div>
   <div class="card">
     <div class="row"><input id="newName" placeholder="教材名を追加" style="margin:0"><button class="btn" onclick="add()">追加</button></div>
@@ -56,17 +57,27 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 
 <script>
 const FORMS=['未確認','紙のみ','PDFのみ','紙+PDF'];
-const SEED=["ばっちりくんドリル【基礎編】109 長文の記憶", "ばっちりくんドリル【基礎編】79 理科的常識(生き物)", "ばっちりくんドリル【基礎編】81 理科的常識(植物)", "ばっちりくんドリル【基礎編】83 理科的常識(自然・科学)", "ばっちりくんドリル【基礎編】93 条件推理", "ひとりでとっくん 22 はさみぎり(基礎編)", "ひとりでとっくん365日 01基礎1-A", "ひとりでとっくん365日 02基礎1-B", "ひとりでとっくん365日 03基礎2-A", "ひとりでとっくん365日 04基礎2-B", "ひとりでとっくん365日 05基礎3-A", "ひとりでとっくん単元別　2 点図形2", "ひとりでとっくん単元別　3 点図形3", "ひとりでとっくん単元別　10 同数発見", "ひとりでとっくん単元別　11 同図形発見", "ひとりでとっくん単元別　17 分類係数2", "ひとりでとっくん単元別　29 仲間はずれ", "ひとりでとっくん単元別　35 一対多対応", "ひとりでとっくん単元別　38 数の構成", "ひとりでとっくん単元別　96 図形分割2", "ピンポンワーク 年中6月", "ピンポンワーク 年中8月", "ピンポンワーク 年中9月", "新版ばっちりくんドリル【基礎編】9 倍数・１対多対応", "新版ばっちりくんドリル【応用編】16 規則性", "新版ばっちりくんドリル【応用編】54 2つ折り・4つ折り・折り目", "新版ばっちりくんドリル【基礎編】23 言葉", "新版ばっちりくんドリル【基礎編】31 話の理解", "新版ばっちりくんドリル【応用編】62 見え方", "新版ばっちりくんドリル【基礎編】35 点図形①", "新版ばっちりくんドリル【基礎編】39 同形発見・同配列発見", "新版ばっちりくんドリル【基礎編】37 点図形②", "新版ばっちりくんドリル【基礎編】55 重ね図形•重なった図形", "新版ばっちりくんドリル【基礎編】59 立体図形・展開図", "新版ばっちりくんドリル【基礎編】63 映像の記憶", "新版ばっちりくんドリル【基礎編】65 位置の理解・位置の推理", "新版ばっちりくんドリル【基礎編】73 重さの比較・重さの推理", "新版ばっちりくんドリル【基礎編】79 生活常識①", "新版ばっちりくんドリル【基礎編】83 季節•行事", "ひとりでとっくん単元別　54 理科的常識①", "ひとりでとっくん単元別　51 重ね点図形"];
-const mk=n=>({name:n,form:'未確認',url:'',loc:'',note:''});
+const SEED=["ばっちりくんドリル【基礎編】109 長文の記憶", "ばっちりくんドリル【基礎編】79 理科的常識(生き物)", "ばっちりくんドリル【基礎編】81 理科的常識(植物)", "ばっちりくんドリル【基礎編】83 理科的常識(自然・科学)", "ばっちりくんドリル【基礎編】93 条件推理", "ひとりでとっくん単元別　22 はさみぎり(基礎編)", "ひとりでとっくん365日 01基礎1-A", "ひとりでとっくん365日 02基礎1-B", "ひとりでとっくん365日 03基礎2-A", "ひとりでとっくん365日 04基礎2-B", "ひとりでとっくん365日 05基礎3-A", "ひとりでとっくん単元別　2 点図形2", "ひとりでとっくん単元別　3 点図形3", "ひとりでとっくん単元別　10 同数発見", "ひとりでとっくん単元別　11 同図形発見", "ひとりでとっくん単元別　17 分類係数2", "ひとりでとっくん単元別　29 仲間はずれ", "ひとりでとっくん単元別　35 一対多対応", "ひとりでとっくん単元別　38 数の構成", "ひとりでとっくん単元別　96 図形分割2", "ピンポンワーク 年中6月", "ピンポンワーク 年中8月", "ピンポンワーク 年中9月", "新版ばっちりくんドリル【基礎編】9 倍数・１対多対応", "新版ばっちりくんドリル【応用編】16 規則性", "新版ばっちりくんドリル【応用編】54 2つ折り・4つ折り・折り目", "新版ばっちりくんドリル【基礎編】23 言葉", "新版ばっちりくんドリル【基礎編】31 話の理解", "新版ばっちりくんドリル【応用編】62 見え方", "新版ばっちりくんドリル【基礎編】35 点図形①", "新版ばっちりくんドリル【基礎編】39 同形発見・同配列発見", "新版ばっちりくんドリル【基礎編】37 点図形②", "新版ばっちりくんドリル【基礎編】55 重ね図形•重なった図形", "新版ばっちりくんドリル【基礎編】59 立体図形・展開図", "新版ばっちりくんドリル【基礎編】63 映像の記憶", "新版ばっちりくんドリル【基礎編】65 位置の理解・位置の推理", "新版ばっちりくんドリル【基礎編】73 重さの比較・重さの推理", "新版ばっちりくんドリル【基礎編】79 生活常識①", "新版ばっちりくんドリル【基礎編】83 季節•行事", "ひとりでとっくん単元別　54 理科的常識①", "ひとりでとっくん単元別　51 重ね点図形", "新版ばっちりくんドリル【基礎編】3 数の比較・量の比較・量の推理", "新版ばっちりくんドリル【基礎編】11 等分・分割", "新版ばっちりくんドリル【基礎編】13 複合計算・話の聞き取りと計算", "新版ばっちりくんドリル【基礎編】15 規則性", "新版ばっちりくんドリル【基礎編】19 音の理解", "新版ばっちりくんドリル【基礎編】51 線対象図形", "新版ばっちりくんドリル【基礎編】81 生活常識②", "新版ばっちりくんドリル【応用編】32 話の理解", "新版ばっちりくんドリル【応用編】28 長文の記憶", "新版ばっちりくんドリル【応用編】74 重さの比較・重さの推理", "新版ばっちりくんドリル【応用編】20 音の理解", "新版ばっちりくんドリル【応用編】44 大小・長短・広さの比較", "新版ばっちりくんドリル【応用編】34 運筆・模写・置き換え", "ひとりでとっくん365日 06基礎3-B", "ひとりでとっくん365日テスト 01-04", "ひとりでとっくん365日テスト 05-08"];
+const mk=n=>({name:n,form:'未確認',loc:'',note:''});
 let items=[];
 try{items=JSON.parse(localStorage.getItem('ml_items')||'null')||[]}catch(e){items=[]}
 // 初回（v2）だけ、初期リストにある教材のうち未登録のものを追加
-try{if(!localStorage.getItem('ml_seeded_v2')){SEED.forEach(n=>{if(!items.some(e=>e.name===n))items.push(mk(n))});localStorage.setItem('ml_seeded_v2','1');localStorage.setItem('ml_items',JSON.stringify(items))}}catch(e){if(!items.length)items=SEED.map(mk)}
+try{
+  const RENAMES={'ひとりでとっくん 22 はさみぎり(基礎編)':'ひとりでとっくん単元別　22 はさみぎり(基礎編)'};
+  let seeded=JSON.parse(localStorage.getItem('ml_seeded_names')||'null');
+  if(!seeded)seeded=localStorage.getItem('ml_seeded_v2')?SEED.slice(0,41):[];
+  Object.keys(RENAMES).forEach(o=>{const nn=RENAMES[o];
+    items.forEach(e=>{if(e.name===o&&!items.some(x=>x.name===nn))e.name=nn});
+    if(seeded.includes(o)&&!seeded.includes(nn))seeded.push(nn)});
+  SEED.forEach(n=>{if(!seeded.includes(n)&&!items.some(e=>e.name===n))items.push(mk(n))});
+  localStorage.setItem('ml_seeded_names',JSON.stringify(SEED));
+  localStorage.setItem('ml_items',JSON.stringify(items));
+}catch(e){if(!items.length)items=SEED.map(mk)}
 let filter='すべて',tab='view';
 const save=()=>{try{localStorage.setItem('ml_items',JSON.stringify(items))}catch(e){}};
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const norm=s=>String(s).normalize('NFKC').toLowerCase().replace(/\s+/g,'');
-const SERIES=['ばっちりくんドリル','新版ばっちりくんドリル','ひとりでとっくん365日','ひとりでとっくん単元別','ひとりでとっくん','ピンポンワーク'];
+const SERIES=['ばっちりくんドリル','新版ばっちりくんドリル','ひとりでとっくん365日','ひとりでとっくん365日テスト','ひとりでとっくん単元別','ひとりでとっくん','ピンポンワーク'];
 function seriesOf(n){
   const m=[...SERIES].sort((a,b)=>b.length-a.length).find(s=>n.startsWith(s));
   return m||'その他';
@@ -77,6 +88,7 @@ function parseName(name,s){
   let tag='';
   const t=rest.match(/^【([^】]+)】\s*/);
   if(t){tag=t[1];rest=rest.slice(t[0].length)}
+  const r=rest.match(/^(\d+)\s*-\s*(\d+)$/);if(r)return{n:parseInt(r[1],10),text:rest};
   const m=rest.match(/^(\d+)\s*(.*)$/);
   const tail=tag?'【'+tag+'】':'';
   if(m)return{n:parseInt(m[1],10),text:m[1]+'. '+m[2]+tail};
@@ -109,7 +121,6 @@ function renderEdit(){
   <div class="card">
     <div class="row"><input class="name" value="${esc(it.name)}" style="margin:0" onchange="upd(${i},'name',this.value)"><button class="del" onclick="del(${i})">削除</button></div>
     <select onchange="upd(${i},'form',this.value);render()">${FORMS.map(f=>`<option${f===it.form?' selected':''}>${f}</option>`).join('')}</select>
-    <input class="a" placeholder="GoogleドライブのURL" value="${esc(it.url)}" onchange="upd(${i},'url',this.value)">
     <input class="a" placeholder="紙の保管場所（例：本棚2段目）" value="${esc(it.loc)}" onchange="upd(${i},'loc',this.value)">
     <input class="a" placeholder="備考" value="${esc(it.note)}" onchange="upd(${i},'note',this.value)">
   </div>`).join('')||'<div class="card">該当する教材がありません</div>';
@@ -123,7 +134,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 function exportJson(){dl(`materials_${today()}.json`,JSON.stringify(items,null,2),'application/json')}
 function exportCsv(){
   const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
-  const rows=[['id','教材名','保管形態','Googleドライブのリンク','紙の保管場所','備考'],...items.map((it,i)=>[String(i+1).padStart(3,'0'),it.name,it.form,it.url,it.loc,it.note])];
+  const rows=[['id','教材名','保管形態','紙の保管場所','備考'],...items.map((it,i)=>[String(i+1).padStart(3,'0'),it.name,it.form,it.loc,it.note])];
   dl('materials.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n')+'\n','text/csv');
 }
 function importJson(inp){
