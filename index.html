@@ -40,6 +40,7 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 </div>
 
 <div id="v-edit" style="display:none">
+  <input id="eq" type="search" placeholder="教材名や番号で検索" oninput="render()" style="margin:0 0 10px">
   <div class="chips" id="chips"></div>
   <div class="tag" style="margin:-4px 0 10px">PDF＝Googleドライブに保存済み</div>
   <div id="list"></div>
@@ -122,14 +123,23 @@ function renderView(){
 }
 function renderEdit(){
   document.getElementById('chips').innerHTML=['すべて',...FORMS].map(f=>`<button class="chip${f===filter?' on':''}" onclick="filter='${f}';render()">${f}</button>`).join('');
-  document.getElementById('list').innerHTML=items.map((it,i)=>filter!=='すべて'&&it.form!==filter?'':`
+  const q=norm(document.getElementById('eq').value);
+  const hit=items.filter(it=>(filter==='すべて'||it.form===filter)&&(!q||norm(it.name).includes(q)));
+  const groups={};
+  hit.forEach(it=>{(groups[seriesOf(it.name)]=groups[seriesOf(it.name)]||[]).push(it)});
+  const order=[...SERIES,'その他'].filter(s=>groups[s]);
+  const card=it=>{const i=items.indexOf(it);return `
   <div class="card">
     <div class="row"><input class="name" value="${esc(it.name)}" style="margin:0" onchange="upd(${i},'name',this.value)"><button class="del" onclick="del(${i})">削除</button></div>
     <select onchange="upd(${i},'form',this.value);render()">${FORMS.map(f=>`<option${f===it.form?' selected':''}>${f}</option>`).join('')}</select>
     <select onchange="upd(${i},'status',this.value);render()">${STATUS.map(f=>`<option${f===(it.status||'未着手')?' selected':''}>${f}</option>`).join('')}</select>
     <input class="a" placeholder="紙の保管場所（例：本棚2段目）" value="${esc(it.loc)}" onchange="upd(${i},'loc',this.value)">
     <input class="a" placeholder="備考" value="${esc(it.note)}" onchange="upd(${i},'note',this.value)">
-  </div>`).join('')||'<div class="card">該当する教材がありません</div>';
+  </div>`};
+  document.getElementById('list').innerHTML=order.length?order.map(s=>{
+    const arr=groups[s].map(it=>({it,p:parseName(it.name,s)})).sort((a,b)=>(a.p.n-b.p.n)||a.p.text.localeCompare(b.p.text,'ja',{numeric:true}));
+    return `<h2>${esc(labelOf(s))}（${arr.length}）</h2>`+arr.map(({it})=>card(it)).join('');
+  }).join(''):'<div class="card">該当する教材がありません</div>';
 }
 function render(){document.getElementById('cnt').textContent=items.length+'件';tab==='view'?renderView():renderEdit()}
 function upd(i,k,v){items[i][k]=v.trim();save()}
