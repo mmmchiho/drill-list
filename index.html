@@ -25,6 +25,8 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 .li:first-of-type{border-radius:10px 10px 0 0}.li:last-child{border-radius:0 0 10px 10px;border-bottom:0}
 .li:only-child{border-radius:10px}
 .b{font-size:10px;color:#666;background:#eee;border-radius:6px;padding:1px 6px;margin-left:6px;white-space:nowrap}
+.b.st-doing{background:#fff4d6;color:#8a6d00}
+.b.st-done{background:#e3f6e8;color:#1b7a34}
 .res{text-align:center;padding:18px 10px;border-radius:12px;font-size:15px;font-weight:600;margin-bottom:10px}
 .res.ok{background:#e3f6e8;color:#1b7a34}.res.ng{background:#ffe5e3;color:#c4261d}
 </style></head><body>
@@ -57,8 +59,9 @@ input,select{width:100%;box-sizing:border-box;padding:7px 8px;font-size:16px;bor
 
 <script>
 const FORMS=['未確認','紙のみ','PDFのみ','紙+PDF'];
+const STATUS=['未着手','使用中','完了'];
 const SEED=["ばっちりくんドリル【基礎編】109 長文の記憶", "ばっちりくんドリル【基礎編】79 理科的常識(生き物)", "ばっちりくんドリル【基礎編】81 理科的常識(植物)", "ばっちりくんドリル【基礎編】83 理科的常識(自然・科学)", "ばっちりくんドリル【基礎編】93 条件推理", "ひとりでとっくん単元別　22 はさみぎり(基礎編)", "ひとりでとっくん365日 01基礎1-A", "ひとりでとっくん365日 02基礎1-B", "ひとりでとっくん365日 03基礎2-A", "ひとりでとっくん365日 04基礎2-B", "ひとりでとっくん365日 05基礎3-A", "ひとりでとっくん単元別　2 点図形2", "ひとりでとっくん単元別　3 点図形3", "ひとりでとっくん単元別　10 同数発見", "ひとりでとっくん単元別　11 同図形発見", "ひとりでとっくん単元別　17 分類係数2", "ひとりでとっくん単元別　29 仲間はずれ", "ひとりでとっくん単元別　35 一対多対応", "ひとりでとっくん単元別　38 数の構成", "ひとりでとっくん単元別　96 図形分割2", "ピンポンワーク 年中6月", "ピンポンワーク 年中8月", "ピンポンワーク 年中9月", "新版ばっちりくんドリル【基礎編】9 倍数・１対多対応", "新版ばっちりくんドリル【応用編】16 規則性", "新版ばっちりくんドリル【応用編】54 2つ折り・4つ折り・折り目", "新版ばっちりくんドリル【基礎編】23 言葉", "新版ばっちりくんドリル【基礎編】31 話の理解", "新版ばっちりくんドリル【応用編】62 見え方", "新版ばっちりくんドリル【基礎編】35 点図形①", "新版ばっちりくんドリル【基礎編】39 同形発見・同配列発見", "新版ばっちりくんドリル【基礎編】37 点図形②", "新版ばっちりくんドリル【基礎編】55 重ね図形•重なった図形", "新版ばっちりくんドリル【基礎編】59 立体図形・展開図", "新版ばっちりくんドリル【基礎編】63 映像の記憶", "新版ばっちりくんドリル【基礎編】65 位置の理解・位置の推理", "新版ばっちりくんドリル【基礎編】73 重さの比較・重さの推理", "新版ばっちりくんドリル【基礎編】79 生活常識①", "新版ばっちりくんドリル【基礎編】83 季節•行事", "ひとりでとっくん単元別　54 理科的常識①", "ひとりでとっくん単元別　51 重ね点図形", "新版ばっちりくんドリル【基礎編】3 数の比較・量の比較・量の推理", "新版ばっちりくんドリル【基礎編】11 等分・分割", "新版ばっちりくんドリル【基礎編】13 複合計算・話の聞き取りと計算", "新版ばっちりくんドリル【基礎編】15 規則性", "新版ばっちりくんドリル【基礎編】19 音の理解", "新版ばっちりくんドリル【基礎編】51 線対象図形", "新版ばっちりくんドリル【基礎編】81 生活常識②", "新版ばっちりくんドリル【応用編】32 話の理解", "新版ばっちりくんドリル【応用編】28 長文の記憶", "新版ばっちりくんドリル【応用編】74 重さの比較・重さの推理", "新版ばっちりくんドリル【応用編】20 音の理解", "新版ばっちりくんドリル【応用編】44 大小・長短・広さの比較", "新版ばっちりくんドリル【応用編】34 運筆・模写・置き換え", "ひとりでとっくん365日 06基礎3-B", "ひとりでとっくん365日テスト 01-04", "ひとりでとっくん365日テスト 05-08"];
-const mk=n=>({name:n,form:'未確認',loc:'',note:''});
+const mk=n=>({name:n,form:'未確認',status:'未着手',loc:'',note:''});
 let items=[];
 try{items=JSON.parse(localStorage.getItem('ml_items')||'null')||[]}catch(e){items=[]}
 // 初回（v2）だけ、初期リストにある教材のうち未登録のものを追加
@@ -78,6 +81,8 @@ const save=()=>{try{localStorage.setItem('ml_items',JSON.stringify(items))}catch
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const norm=s=>String(s).normalize('NFKC').toLowerCase().replace(/\s+/g,'');
 const SERIES=['ばっちりくんドリル','新版ばっちりくんドリル','ひとりでとっくん365日','ひとりでとっくん365日テスト','ひとりでとっくん単元別','ひとりでとっくん','ピンポンワーク'];
+const SERIES_LABEL={'ばっちりくんドリル':'旧版ばっちりくんドリル'};
+const labelOf=s=>SERIES_LABEL[s]||s;
 function seriesOf(n){
   const m=[...SERIES].sort((a,b)=>b.length-a.length).find(s=>n.startsWith(s));
   return m||'その他';
@@ -112,7 +117,7 @@ function renderView(){
   const order=[...SERIES,'その他'].filter(s=>groups[s]);
   document.getElementById('vlist').innerHTML=order.map(s=>{
     const arr=groups[s].map(it=>({it,p:parseName(it.name,s)})).sort((a,b)=>(a.p.n-b.p.n)||a.p.text.localeCompare(b.p.text,'ja',{numeric:true}));
-    return `<h2>${esc(s)}（${arr.length}）</h2>`+arr.map(({it,p})=>`<div class="li">${esc(p.text)}${it.form==='紙のみ'?'<span class="b">紙</span>':it.form==='PDFのみ'?'<span class="b">PDF</span>':it.form==='紙+PDF'?'<span class="b">紙+PDF</span>':''}</div>`).join('');
+    return `<h2>${esc(labelOf(s))}（${arr.length}）</h2>`+arr.map(({it,p})=>`<div class="li">${esc(p.text)}${it.form==='紙のみ'?'<span class="b">紙</span>':it.form==='PDFのみ'?'<span class="b">PDF</span>':it.form==='紙+PDF'?'<span class="b">紙+PDF</span>':''}${it.status&&it.status!=='未着手'?`<span class="b st-${it.status==='完了'?'done':'doing'}">${esc(it.status)}</span>`:''}</div>`).join('');
   }).join('');
 }
 function renderEdit(){
@@ -121,6 +126,7 @@ function renderEdit(){
   <div class="card">
     <div class="row"><input class="name" value="${esc(it.name)}" style="margin:0" onchange="upd(${i},'name',this.value)"><button class="del" onclick="del(${i})">削除</button></div>
     <select onchange="upd(${i},'form',this.value);render()">${FORMS.map(f=>`<option${f===it.form?' selected':''}>${f}</option>`).join('')}</select>
+    <select onchange="upd(${i},'status',this.value);render()">${STATUS.map(f=>`<option${f===(it.status||'未着手')?' selected':''}>${f}</option>`).join('')}</select>
     <input class="a" placeholder="紙の保管場所（例：本棚2段目）" value="${esc(it.loc)}" onchange="upd(${i},'loc',this.value)">
     <input class="a" placeholder="備考" value="${esc(it.note)}" onchange="upd(${i},'note',this.value)">
   </div>`).join('')||'<div class="card">該当する教材がありません</div>';
@@ -134,7 +140,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 function exportJson(){dl(`materials_${today()}.json`,JSON.stringify(items,null,2),'application/json')}
 function exportCsv(){
   const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
-  const rows=[['id','教材名','保管形態','紙の保管場所','備考'],...items.map((it,i)=>[String(i+1).padStart(3,'0'),it.name,it.form,it.loc,it.note])];
+  const rows=[['id','教材名','保管形態','使用状況','紙の保管場所','備考'],...items.map((it,i)=>[String(i+1).padStart(3,'0'),it.name,it.form,it.status||'未着手',it.loc,it.note])];
   dl('materials.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n')+'\n','text/csv');
 }
 function importJson(inp){
